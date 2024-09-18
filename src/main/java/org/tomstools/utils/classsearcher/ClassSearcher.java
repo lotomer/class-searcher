@@ -3,6 +3,7 @@ package org.tomstools.utils.classsearcher;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -69,24 +70,29 @@ public class ClassSearcher {
 
 
     private void doSearchFromZip(List<String> result, File file, String className) {
+        ZipEntry entry = null;
+        ZipFile zipFile = null;
         try {
-            ZipFile zipFile = new ZipFile(file);
+            zipFile = new ZipFile(file, Charset.forName(System.getProperty("sun.jnu.encoding")));
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            ZipEntry entry = null;
             while (entries.hasMoreElements()) {
 
                 entry = (ZipEntry) entries.nextElement();
                 if (isContained(entry.getName(), className)) {
-
                     result.add(file.getAbsolutePath());
-
                     break;
                 }
             }
-        } catch (ZipException e) {
-
-
-        } catch (IOException e) {
+        } catch (Exception e) {
+            System.err.println(file + ": " + e);
+        }finally {
+            if (null != zipFile){
+                try {
+                    zipFile.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
